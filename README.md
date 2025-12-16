@@ -2,6 +2,10 @@
 
 Magic Control allows you to control your Mac using hand gestures via your webcam.
 
+## Download / 下载
+
+[Download Latest macOS DMG / 下载最新 macOS 安装包](https://github.com/yannisxu/MagicControl/releases)
+
 ## Installation / 安装
 
 Since this application is not signed with an Apple Developer ID, macOS may prevent it from opening ("App is damaged" or "Unidentified developer").
