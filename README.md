@@ -1,6 +1,26 @@
 # Magic Control
 
 Magic Control allows you to control your Mac using hand gestures via your webcam.
+通过摄像头捕捉手势，实现对 Mac 的隔空操控。
+
+## Usage Guide / 使用教程
+
+See the [Animated Guide](docs/guide.html) for a visual demonstration.
+[查看动态演示](docs/guide.html)
+
+**1. 激光滑动 / Laser Sliding**
+- Move your hand naturally to control the red laser pointer.
+- 移动手掌控制红色激光点。
+
+**2. 手势捏合 / Pinch**
+- Pinch your **Index Finger** and **Thumb** together to activate "Grab Mode".
+- A **Green Dot** will appear to confirm recognition.
+- 捏合**食指**和**拇指**；出现**绿点**表示识别成功。
+
+**3. 左滑右滑 / Swipe**
+- While holding the pinch, move your hand **Left/Right** (or Up/Down) to flip pages.
+- Release the pinch to trigger the action.
+- 保持捏合状态，向**左/右**（或上/下）移动手掌；松开捏合即可触发翻页。
 
 ## Download / 下载
 
@@ -35,5 +55,4 @@ sudo xattr -r -d com.apple.quarantine "/Applications/Magic Control.app"
 This template should help get you started developing with Tauri, React and Typescript in Vite.
 
 ### Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- [Antigravity](https://antigravity.app/)

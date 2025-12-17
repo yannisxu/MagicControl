@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagicControl Gesture Guide</title>
+    <style>
+        :root {
+            --primary: #4ade80;
+            --laser-red: rgba(255, 50, 50, 0.9);
+            --bg: #1a1a1a;
+            --text: #ffffff;
+            --total-time: 12s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 {
+            margin-bottom: 2rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            background: #252525;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cursor-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hand {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: opacity 0.2s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            /* CLEANUP: No filters needed because PNGs are now transparent! */
+            /* Using Python-cleaned images: hand-point_clean.png */
+
+            /* CROP: Circle Crop to remove the square box frame */
+            /* 42% radius from center ensures corners of a square box are cut, */
+            /* while the central hand remains visible. */
+            clip-path: circle(42%);
+        }
+
+        /* FLIP Pointing Hand */
+        .hand.point {
+            /* Scale X -1 for flip. Rotate 15deg. */
+            /* RESET CLIP: The circle crop cuts off the finger! */
+            /* Using the clean image, we can trust transparency. */
+            clip-path: none;
+            transform: scaleX(-1) rotate(15deg) scale(1.1);
+        }
+
+        .hand.pinch {
+            /* Scale 1.2 to fill */
+            transform: scale(1.2);
+        }
+
+        /* --- ALIGNMENT --- */
+
+        /* 1. Laser Dot */
+        /* Red dot at index finger tip (Higher and slightly left/right depending on tilt) */
+        .laser-dot {
+            position: absolute;
+            top: 15px;
+            /* Higher (closer to tip) */
+            left: 50px;
+            /* Adjusted left */
+            width: 12px;
+            height: 12px;
+            background: var(--laser-red);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--laser-red);
+            opacity: 0;
+            z-index: 15;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 2. Pinch Dot */
+        /* Green dot between thumb and index (Adjusted per user image) */
+        .pinch-dot {
+            position: absolute;
+            top: 78px;
+            /* Lower (was 65) */
+            left: 48px;
+            /* Left (was 55) */
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--primary);
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0);
+        }
+
+        /* 3. Static Trail Line */
+        .static-trail {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: 10px;
+            margin-left: -30px;
+            height: 3px;
+            background: repeating-linear-gradient(90deg, var(--primary) 0, var(--primary) 8px, transparent 8px, transparent 16px);
+            transform-origin: left center;
+            z-index: 5;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+            animation: line-anim-static var(--total-time) infinite ease-in-out;
+        }
+
+        .toast {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 500;
+            opacity: 0;
+            white-space: nowrap;
+        }
+
+        .step-indicator {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .step {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #333;
+            color: #888;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .step.active {
+            background: var(--primary);
+            color: #000;
+            font-weight: bold;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+        }
+
+        /* --- ANIMATION SEQUENCE (12s loop) --- */
+
+        @keyframes behavior-anim {
+
+            /* 1. LASER - ORGANIC MOVEMENT */
+            0% {
+                transform: translate(-50%, -50%) translate(-40px, 20px);
+            }
+
+            5% {
+                transform: translate(-50%, -50%) translate(-80px, -30px);
+            }
+
+            10% {
+                transform: translate(-50%, -50%) translate(20px, -60px);
+            }
+
+            15% {
+                transform: translate(-50%, -50%) translate(60px, 0px);
+            }
+
+            20% {
+                transform: translate(-50%, -50%) translate(0px, 40px);
+            }
+
+            25% {
+                transform: translate(-50%, -50%) translate(-30px, -10px);
+            }
+
+            30% {
+                transform: translate(-50%, -50%) translate(0, 0);
+            }
+
+            /* 2. PINCH (Pause) */
+            35% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(1);
+            }
+
+            38% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(0.95);
+            }
+
+            /* 3. SWIPE */
+            45% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(0.95);
+            }
+
+            /* Hold */
+            60% {
+                transform: translate(-50%, -50%) translate(180px, 0) scale(0.95);
+            }
+
+            /* Drag */
+            65% {
+                transform: translate(-50%, -50%) translate(180px, 0) scale(1);
+            }
+
+            /* Release */
+
+            /* RESET */
+            75% {
+                opacity: 0;
+                transform: translate(-50%, -50%) translate(180px, 0);
+            }
+
+            80% {
+                opacity: 0;
+                transform: translate(-50%, -50%) translate(-40px, 20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) translate(-40px, 20px);
+            }
+        }
+
+        @keyframes show-point {
+
+            0%,
+            35% {
+                opacity: 1;
+            }
+
+            36%,
+            65% {
+                opacity: 0;
+            }
+
+            66%,
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes show-pinch {
+
+            0%,
+            35% {
+                opacity: 0;
+            }
+
+            36%,
+            65% {
+                opacity: 1;
+            }
+
+            66%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes laser-vis {
+
+            0%,
+            35% {
+                opacity: 1;
+            }
+
+            36%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes pinch-dot-vis {
+
+            0%,
+            36% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+            }
+
+            38%,
+            65% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            66%,
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+            }
+        }
+
+        @keyframes line-anim-static {
+
+            0%,
+            45% {
+                width: 0;
+                opacity: 0;
+            }
+
+            46% {
+                width: 0;
+                opacity: 1;
+            }
+
+            60%,
+            65% {
+                width: 180px;
+                opacity: 1;
+            }
+
+            66%,
+            100% {
+                width: 180px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes toast-anim {
+
+            0%,
+            60% {
+                opacity: 0;
+                transform: translate(-50%, -10px);
+            }
+
+            65%,
+            75% {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+
+            80%,
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -10px);
+            }
+        }
+
+        @keyframes s1 {
+
+            0%,
+            35% {
+                background: var(--primary);
+                color: #000;
+                transform: scale(1.05);
+            }
+
+            36%,
+            100% {
+                background: #333;
+                color: #888;
+            }
+        }
+
+        @keyframes s2 {
+
+            0%,
+            35% {
+                background: #333;
+            }
+
+            36%,
+            45% {
+                background: var(--primary);
+                color: #000;
+                transform: scale(1.05);
+            }
+
+            46%,
+            100% {
+                background: #333;
+            }
+        }
+
+        @keyframes s3 {
+
+            0%,
+            45% {
+                background: #333;
+            }
+
+            46%,
+            75% {
+                background: var(--primary);
+                color: #000;
+                transform: scale(1.05);
+            }
+
+            76%,
+            100% {
+                background: #333;
+            }
+        }
+
+
+        .cursor-container {
+            animation: behavior-anim var(--total-time) infinite ease-in-out;
+        }
+
+        .hand.point {
+            animation: show-point var(--total-time) infinite steps(1);
+        }
+
+        .hand.pinch {
+            animation: show-pinch var(--total-time) infinite steps(1);
+        }
+
+        .laser-dot {
+            animation: laser-vis var(--total-time) infinite;
+        }
+
+        .pinch-dot {
+            animation: pinch-dot-vis var(--total-time) infinite;
+        }
+
+        .toast {
+            animation: toast-anim var(--total-time) infinite;
+        }
+
+        .step-1 {
+            animation: s1 var(--total-time) infinite;
+        }
+
+        .step-2 {
+            animation: s2 var(--total-time) infinite;
+        }
+
+        .step-3 {
+            animation: s3 var(--total-time) infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Magic Control Usage / 使用教程</h1>
+
+    <div class="container">
+        <!-- Static Line -->
+        <div class="static-trail"></div>
+
+        <div class="cursor-container">
+            <!-- POINTING: Clean PNG + Circle Crop -->
+            <img class="hand point" src="hand-point_clean.png" alt="Point">
+
+            <!-- PINCH: Clean PNG + Circle Crop -->
+            <img class="hand pinch" src="hand-pinch_clean.png" alt="Pinch">
+
+            <div class="laser-dot"></div>
+            <div class="pinch-dot"></div>
+        </div>
+
+        <div class="toast">下一页 / Next Page</div>
+
+        <div class="step-indicator">
+            <div class="step step-1">1. Slide / 滑动</div>
+            <div class="step step-2">2. Pinch / 捏合</div>
+            <div class="step step-3">3. Flip / 翻页</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem; display: flex; gap: 2rem; color: #888; font-size: 0.9rem;">
+        <div>👆 Pointing</div>
+        <div>👌 Pinch</div>
+        <div>➡️ Swipe Right</div>
+    </div>
+
+</body>
+
+</html>

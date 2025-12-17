@@ -38,11 +38,19 @@ function isPointing(lm: any[]): boolean {
 }
 
 // Detection: Pinch (Index and Thumb close together)
-function isPinch(lm: any[]): boolean {
+function isPinch(lm: any[], current: boolean): boolean {
   const thumbTip = lm[4]
   const indexTip = lm[8]
   const distance = dist(thumbTip, indexTip)
-  return distance < 0.05 // Threshold for pinch
+
+  // Hysteresis:
+  // Enter (Start Pinch) if < 0.035
+  // Exit (Stop Pinch) if > 0.08 (Relaxed to prevent drops)
+  if (current) {
+    return distance < 0.08
+  } else {
+    return distance < 0.035
+  }
 }
 
 // Action: Send simulated key press
@@ -79,8 +87,8 @@ export default function App() {
   // const [holdDuration, setHoldDuration] = useState(1500) // REMOVED
 
   // Visual Feedback Settings
-  const [showPinch, setShowPinch] = useState(false)
-  const [showToastState, setShowToastState] = useState(false)
+  const [showPinch, setShowPinch] = useState(true)
+  const [showToastState, setShowToastState] = useState(true)
 
   // const holdDurationRef = useRef(holdDuration) // REMOVED
   const showPinchRef = useRef(showPinch)
@@ -105,7 +113,8 @@ export default function App() {
   // Drag State for Pinch Gesture
   const dragOriginRef = useRef<{ x: number, y: number } | null>(null)
   const dragCurrentRef = useRef<{ x: number, y: number } | null>(null)
-  const DRAG_THRESHOLD = 0.15 // 15% screen width trigger
+  const pinchLossFrameCountRef = useRef(0) // Debounce counter
+  const DRAG_THRESHOLD = 0.12 // 15% -> 12% trigger (easier to swipe)
 
   useEffect(() => { modeRef.current = mode }, [mode])
 
@@ -241,13 +250,37 @@ export default function App() {
           // --- New Gesture Logic (Camera Loop - Logic Check Only) ---
 
           // 1. Pinch & Drag Logic
-          if (isPinch(lm)) {
+          // Check pinch with hysteresis based on current state
+          const rawIsPinching = isPinch(lm, currentGestureRef.current === 'pinch');
+          let effectiveIsPinching = rawIsPinching;
+
+          if (currentGestureRef.current === 'pinch') {
+            if (!rawIsPinching) {
+              // Lost pinch? Check debounce
+              pinchLossFrameCountRef.current++;
+              if (pinchLossFrameCountRef.current < 5) { // 5 frames ~80ms grace period
+                effectiveIsPinching = true; // Pretend we are still pinching
+              }
+            } else {
+              pinchLossFrameCountRef.current = 0; // Reset
+            }
+          } else {
+            if (rawIsPinching) {
+              pinchLossFrameCountRef.current = 0;
+            }
+          }
+
+          if (effectiveIsPinching) {
             // Keep targetRef updated with pinch center
             const p1 = lm[4]; // Thumb
             const p2 = lm[8]; // Index
+
+            // Note: We use the stored offset derived from Index Tip usually, but applying it to Pinch Center is consistent.
+            const rawCenterY = (p1.y + p2.y) / 2;
+
             const pinchCenter = {
               x: (1 - (p1.x + p2.x) / 2) * window.innerWidth, // Mirror
-              y: ((p1.y + p2.y) / 2) * window.innerHeight
+              y: rawCenterY * window.innerHeight
             };
 
             // Update Target (Logic Loop)
@@ -306,6 +339,7 @@ export default function App() {
           // Reset Drag if hand lost
           dragOriginRef.current = null;
           dragCurrentRef.current = null;
+          pinchLossFrameCountRef.current = 0;
           invoke('update_tray_status', { status: '⚪ 未检测到手势' }).catch(() => { });
           currentGestureRef.current = 'none'
           setProgress(0)
