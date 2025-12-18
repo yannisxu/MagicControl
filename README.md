@@ -1,7 +1,7 @@
 # Magic Control
 
 Magic Control allows you to control your Mac using hand gestures via your webcam.
-通过摄像头捕捉手势，实现对 Mac 的隔空操控。
+通过摄像头捕捉手势，实现对 Mac 的隔空操控，主要用于演示 PPT 等场景
 
 ## Usage Guide / 使用教程
 
