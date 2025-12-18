@@ -116,6 +116,15 @@ export default function App() {
   const pinchLossFrameCountRef = useRef(0) // Debounce counter
   const DRAG_THRESHOLD = 0.12 // 15% -> 12% trigger (easier to swipe)
 
+  // Wave Gesture State for Dismissing Laser
+  const waveCountRef = useRef(0) // Number of wave motions detected
+  const lastWaveDirectionRef = useRef<'left' | 'right' | null>(null) // Last wave direction
+  const waveStartTimeRef = useRef<number>(0) // Start time of wave sequence
+  const lastWaveXRef = useRef<number | null>(null) // Last X coordinate
+  const WAVE_THRESHOLD = 0.08 // Min X movement to count as wave (8% of screen)
+  const WAVE_COUNT_REQUIRED = 4 // Number of waves needed to dismiss
+  const WAVE_TIME_WINDOW = 2000 // Time window in ms to complete waves
+
   useEffect(() => { modeRef.current = mode }, [mode])
 
   // Click-through behavior
@@ -323,12 +332,69 @@ export default function App() {
               targetRef.current = target; // Use Index Tip
               currentGestureRef.current = 'none'; // Render as laser
               setProgress(0);
+              // Reset wave detection when pointing
+              waveCountRef.current = 0;
+              lastWaveDirectionRef.current = null;
+              lastWaveXRef.current = null;
             }
             else {
-              // Open hand / Hover
+              // Open hand / Hover - Check for Wave Gesture
               targetRef.current = target;
               currentGestureRef.current = 'open';
               setProgress(0);
+
+              // Wave Detection Logic (only in laser mode)
+              if (modeRef.current === 'laser') {
+                const currentX = tip.x; // Normalized 0-1
+                const now = Date.now();
+
+                if (lastWaveXRef.current !== null) {
+                  const deltaX = currentX - lastWaveXRef.current;
+                  const absMove = Math.abs(deltaX);
+
+                  // Detect direction change
+                  if (absMove > WAVE_THRESHOLD) {
+                    const currentDirection: 'left' | 'right' = deltaX > 0 ? 'left' : 'right'; // Mirrored
+
+                    if (lastWaveDirectionRef.current !== null && currentDirection !== lastWaveDirectionRef.current) {
+                      // Direction changed - count as a wave
+                      if (waveCountRef.current === 0) {
+                        waveStartTimeRef.current = now;
+                      }
+                      waveCountRef.current++;
+                      console.log(`Wave detected: ${waveCountRef.current}/${WAVE_COUNT_REQUIRED}`);
+
+                      // Check if enough waves in time window
+                      if (waveCountRef.current >= WAVE_COUNT_REQUIRED) {
+                        if (now - waveStartTimeRef.current <= WAVE_TIME_WINDOW) {
+                          // Exit application
+                          console.log('Wave gesture completed! Exiting application.');
+                          if (showToastRef.current) showToast('再见！');
+                          // Give user time to see the toast before exiting
+                          setTimeout(() => {
+                            invoke('exit_app').catch(console.error);
+                          }, 500);
+                        }
+                        // Reset wave state
+                        waveCountRef.current = 0;
+                        lastWaveDirectionRef.current = null;
+                        waveStartTimeRef.current = 0;
+                      }
+                    }
+                    lastWaveDirectionRef.current = currentDirection;
+                    lastWaveXRef.current = currentX;
+                  }
+                } else {
+                  lastWaveXRef.current = currentX;
+                }
+
+                // Reset if time window exceeded
+                if (waveCountRef.current > 0 && now - waveStartTimeRef.current > WAVE_TIME_WINDOW) {
+                  waveCountRef.current = 0;
+                  lastWaveDirectionRef.current = null;
+                  waveStartTimeRef.current = 0;
+                }
+              }
             }
           }
 

@@ -58,6 +58,12 @@ fn update_tray_status(app: AppHandle, status: String) {
 }
 
 #[tauri::command]
+fn exit_app(app: AppHandle) {
+    log_line("exit_app called - exiting application");
+    app.exit(0);
+}
+
+#[tauri::command]
 fn press_key(direction: String) -> Result<(), String> {
     log_line(&format!("press_key {}", direction));
     #[cfg(target_os = "macos")]
@@ -313,11 +319,12 @@ pub fn run() {
                 ns_win.setBackgroundColor_(NSColor::clearColor(nil));
                 ns_win.setHasShadow_(false);
 
+                // Show in Dock for easy access to quit
                 let ns_app = NSApp();
                 ns_app.setActivationPolicy_(
-                    NSApplicationActivationPolicy::NSApplicationActivationPolicyAccessory,
+                    NSApplicationActivationPolicy::NSApplicationActivationPolicyRegular,
                 );
-                log_line("setup: activation policy accessory (tray only)");
+                log_line("setup: activation policy regular (show in Dock)");
             }
 
             // Setup system tray
@@ -332,7 +339,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             set_click_through,
             press_key,
-            update_tray_status
+            update_tray_status,
+            exit_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

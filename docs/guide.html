@@ -11,7 +11,7 @@
             --laser-red: rgba(255, 50, 50, 0.9);
             --bg: #1a1a1a;
             --text: #ffffff;
-            --total-time: 12s;
+            --total-time: 18s;
         }
 
         body {
@@ -90,6 +90,12 @@
             transform: scale(1.2);
         }
 
+        .hand.wave {
+            /* Wave hand icon */
+            clip-path: none;
+            transform: scale(0.9);
+        }
+
         /* --- ALIGNMENT --- */
 
         /* 1. Laser Dot */
@@ -111,20 +117,18 @@
         }
 
         /* 2. Pinch Dot */
-        /* Green dot between thumb and index (Adjusted per user image) */
+        /* Green dot at the end of the dashed line - inside the line container */
         .pinch-dot {
             position: absolute;
-            top: 78px;
-            /* Lower (was 65) */
-            left: 48px;
-            /* Left (was 55) */
+            top: 50%;
+            left: 100%;
             width: 12px;
             height: 12px;
             background: var(--primary);
             border-radius: 50%;
             box-shadow: 0 0 15px var(--primary);
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0);
+            transform: translate(-50%, -50%);
+            z-index: 10;
         }
 
         /* 3. Static Trail Line */
@@ -189,68 +193,102 @@
 
         @keyframes behavior-anim {
 
-            /* 1. LASER - ORGANIC MOVEMENT */
+            /* 1. LASER - ORGANIC MOVEMENT (0-25%) */
             0% {
                 transform: translate(-50%, -50%) translate(-40px, 20px);
             }
 
-            5% {
+            4% {
                 transform: translate(-50%, -50%) translate(-80px, -30px);
             }
 
-            10% {
+            8% {
                 transform: translate(-50%, -50%) translate(20px, -60px);
             }
 
-            15% {
+            12% {
                 transform: translate(-50%, -50%) translate(60px, 0px);
             }
 
-            20% {
+            16% {
                 transform: translate(-50%, -50%) translate(0px, 40px);
             }
 
-            25% {
+            20% {
                 transform: translate(-50%, -50%) translate(-30px, -10px);
             }
 
-            30% {
+            25% {
                 transform: translate(-50%, -50%) translate(0, 0);
             }
 
-            /* 2. PINCH (Pause) */
-            35% {
+            /* 2. PINCH (Pause) (25-30%) */
+            28% {
                 transform: translate(-50%, -50%) translate(0, 0) scale(1);
             }
 
-            38% {
+            30% {
                 transform: translate(-50%, -50%) translate(0, 0) scale(0.95);
             }
 
-            /* 3. SWIPE */
-            45% {
+            /* 3. SWIPE (30-50%) */
+            35% {
                 transform: translate(-50%, -50%) translate(0, 0) scale(0.95);
             }
 
             /* Hold */
-            60% {
+            45% {
                 transform: translate(-50%, -50%) translate(180px, 0) scale(0.95);
             }
 
             /* Drag */
-            65% {
+            50% {
                 transform: translate(-50%, -50%) translate(180px, 0) scale(1);
             }
 
-            /* Release */
-
-            /* RESET */
-            75% {
-                opacity: 0;
-                transform: translate(-50%, -50%) translate(180px, 0);
+            /* Release & Return */
+            55% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(1);
             }
 
+            /* 4. WAVE GESTURE (55-90%) - Multiple left-right movements */
+            /* Wave 1: Right */
+            60% {
+                transform: translate(-50%, -50%) translate(100px, 0);
+            }
+
+            /* Wave 2: Left */
+            65% {
+                transform: translate(-50%, -50%) translate(-100px, 0);
+            }
+
+            /* Wave 3: Right */
+            70% {
+                transform: translate(-50%, -50%) translate(100px, 0);
+            }
+
+            /* Wave 4: Left */
+            75% {
+                transform: translate(-50%, -50%) translate(-100px, 0);
+            }
+
+            /* Wave 5: Right */
             80% {
+                transform: translate(-50%, -50%) translate(100px, 0);
+            }
+
+            /* Wave 6: Left - End */
+            85% {
+                transform: translate(-50%, -50%) translate(-50px, 0);
+            }
+
+            /* RESET (90-100%) */
+            90% {
+                opacity: 0;
+                transform: translate(-50%, -50%) translate(-50px, 0);
+            }
+
+            95% {
                 opacity: 0;
                 transform: translate(-50%, -50%) translate(-40px, 20px);
             }
@@ -264,34 +302,52 @@
         @keyframes show-point {
 
             0%,
-            35% {
+            27% {
                 opacity: 1;
             }
 
-            36%,
-            65% {
+            28%,
+            55% {
                 opacity: 0;
             }
 
-            66%,
+            56%,
             100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes show-wave {
+
+            0%,
+            55% {
+                opacity: 0;
+            }
+
+            56%,
+            89% {
                 opacity: 1;
+            }
+
+            90%,
+            100% {
+                opacity: 0;
             }
         }
 
         @keyframes show-pinch {
 
             0%,
-            35% {
+            27% {
                 opacity: 0;
             }
 
-            36%,
-            65% {
+            28%,
+            53% {
                 opacity: 1;
             }
 
-            66%,
+            54%,
             100% {
                 opacity: 0;
             }
@@ -300,11 +356,11 @@
         @keyframes laser-vis {
 
             0%,
-            35% {
+            27% {
                 opacity: 1;
             }
 
-            36%,
+            28%,
             100% {
                 opacity: 0;
             }
@@ -313,18 +369,18 @@
         @keyframes pinch-dot-vis {
 
             0%,
-            36% {
+            35% {
                 opacity: 0;
                 transform: translate(-50%, -50%) scale(0);
             }
 
-            38%,
-            65% {
+            36%,
+            50% {
                 opacity: 1;
                 transform: translate(-50%, -50%) scale(1);
             }
 
-            66%,
+            52%,
             100% {
                 opacity: 0;
                 transform: translate(-50%, -50%) scale(0);
@@ -334,44 +390,65 @@
         @keyframes line-anim-static {
 
             0%,
-            45% {
+            35% {
                 width: 0;
                 opacity: 0;
             }
 
-            46% {
+            36% {
                 width: 0;
                 opacity: 1;
             }
 
-            60%,
-            65% {
+            45%,
+            50% {
                 width: 180px;
                 opacity: 1;
             }
 
-            66%,
+            52%,
             100% {
                 width: 180px;
                 opacity: 0;
             }
         }
 
-        @keyframes toast-anim {
+        @keyframes toast-anim-flip {
 
             0%,
-            60% {
+            46% {
                 opacity: 0;
                 transform: translate(-50%, -10px);
             }
 
-            65%,
-            75% {
+            50%,
+            55% {
                 opacity: 1;
                 transform: translate(-50%, 0);
             }
 
-            80%,
+            58%,
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -10px);
+            }
+        }
+
+        @keyframes toast-anim-dismiss {
+
+            0%,
+            83% {
+                opacity: 0;
+                transform: translate(-50%, -10px);
+            }
+
+            85%,
+            88% {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+
+            90%,
             100% {
                 opacity: 0;
                 transform: translate(-50%, -10px);
@@ -381,13 +458,13 @@
         @keyframes s1 {
 
             0%,
-            35% {
+            25% {
                 background: var(--primary);
                 color: #000;
                 transform: scale(1.05);
             }
 
-            36%,
+            26%,
             100% {
                 background: #333;
                 color: #888;
@@ -397,18 +474,18 @@
         @keyframes s2 {
 
             0%,
-            35% {
+            25% {
                 background: #333;
             }
 
-            36%,
-            45% {
+            26%,
+            35% {
                 background: var(--primary);
                 color: #000;
                 transform: scale(1.05);
             }
 
-            46%,
+            36%,
             100% {
                 background: #333;
             }
@@ -417,18 +494,38 @@
         @keyframes s3 {
 
             0%,
-            45% {
+            35% {
                 background: #333;
             }
 
-            46%,
-            75% {
+            36%,
+            55% {
                 background: var(--primary);
                 color: #000;
                 transform: scale(1.05);
             }
 
-            76%,
+            56%,
+            100% {
+                background: #333;
+            }
+        }
+
+        @keyframes s4 {
+
+            0%,
+            55% {
+                background: #333;
+            }
+
+            56%,
+            88% {
+                background: var(--primary);
+                color: #000;
+                transform: scale(1.05);
+            }
+
+            89%,
             100% {
                 background: #333;
             }
@@ -447,16 +544,24 @@
             animation: show-pinch var(--total-time) infinite steps(1);
         }
 
+        .hand.wave {
+            animation: show-wave var(--total-time) infinite steps(1);
+        }
+
         .laser-dot {
             animation: laser-vis var(--total-time) infinite;
         }
 
         .pinch-dot {
-            animation: pinch-dot-vis var(--total-time) infinite;
+            animation: pinch-dot-vis var(--total-time) infinite ease-in-out;
         }
 
-        .toast {
-            animation: toast-anim var(--total-time) infinite;
+        .toast.toast-flip {
+            animation: toast-anim-flip var(--total-time) infinite;
+        }
+
+        .toast.toast-dismiss {
+            animation: toast-anim-dismiss var(--total-time) infinite;
         }
 
         .step-1 {
@@ -470,6 +575,10 @@
         .step-3 {
             animation: s3 var(--total-time) infinite;
         }
+
+        .step-4 {
+            animation: s4 var(--total-time) infinite;
+        }
     </style>
 </head>
 
@@ -478,8 +587,10 @@
     <h1>Magic Control Usage / 使用教程</h1>
 
     <div class="container">
-        <!-- Static Line -->
-        <div class="static-trail"></div>
+        <!-- Static Line with Pinch Dot -->
+        <div class="static-trail">
+            <div class="pinch-dot"></div>
+        </div>
 
         <div class="cursor-container">
             <!-- POINTING: Clean PNG + Circle Crop -->
@@ -488,16 +599,20 @@
             <!-- PINCH: Clean PNG + Circle Crop -->
             <img class="hand pinch" src="hand-pinch_clean.png" alt="Pinch">
 
+            <!-- WAVE: Clean PNG -->
+            <img class="hand wave" src="hand-wave_clean.png" alt="Wave">
+
             <div class="laser-dot"></div>
-            <div class="pinch-dot"></div>
         </div>
 
-        <div class="toast">下一页 / Next Page</div>
+        <div class="toast toast-flip">下一页 / Next Page</div>
+        <div class="toast toast-dismiss">再见！ / Goodbye!</div>
 
         <div class="step-indicator">
             <div class="step step-1">1. Slide / 滑动</div>
             <div class="step step-2">2. Pinch / 捏合</div>
             <div class="step step-3">3. Flip / 翻页</div>
+            <div class="step step-4">4. Wave / 挥手退出</div>
         </div>
     </div>
 

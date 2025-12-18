@@ -22,9 +22,14 @@ See the [Animated Guide](https://yannisxu.github.io/MagicControl/guide.html) for
 - Release the pinch to trigger the action.
 - 保持捏合状态，向**左/右**（或上/下）移动手掌；松开捏合即可触发翻页。
 
+**4. 挥手退出 / Wave to Exit**
+- Open your hand and wave **Left-Right** rapidly (4+ times within 2 seconds).
+- The application will exit gracefully.
+- 张开手掌，快速**左右挥动**（2秒内挥动4次以上）；程序将优雅退出。
+
 ## Download / 下载
 
-[Download Latest macOS DMG / 下载最新 macOS 安装包](https://github.com/yannisxu/MagicControl/releases/download/v0.1.0/Magic.Control_0.1.0_aarch64.dmg)
+[Download Latest macOS DMG / 下载最新 macOS 安装包](https://github.com/yannisxu/MagicControl/releases/download/v0.2.0/Magic.Control_0.2.0_aarch64.dmg)
 
 ## Installation / 安装
 

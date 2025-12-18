@@ -1,6 +1,6 @@
 [package]
 name = "magic-control-v2"
-version = "0.1.0"
+version = "0.2.0"
 description = "Mac 智能翻页笔 - 使用摄像头手势控制"
 authors = ["MagicControl"]
 edition = "2021"
