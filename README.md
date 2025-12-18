@@ -24,7 +24,7 @@ See the [Animated Guide](https://yannisxu.github.io/MagicControl/guide.html) for
 
 ## Download / 下载
 
-[Download Latest macOS DMG / 下载最新 macOS 安装包](https://github.com/yannisxu/MagicControl/releases)
+[Download Latest macOS DMG / 下载最新 macOS 安装包](https://github.com/yannisxu/MagicControl/releases/download/v0.1.0/Magic.Control_0.1.0_aarch64.dmg)
 
 ## Installation / 安装
 
