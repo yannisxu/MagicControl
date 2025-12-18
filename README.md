@@ -5,7 +5,7 @@ Magic Control allows you to control your Mac using hand gestures via your webcam
 
 ## Usage Guide / 使用教程
 
-See the [Animated Guide]([docs/guide.html](https://yannisxu.github.io/MagicControl/guide.html)) for a visual demonstration.
+See the [Animated Guide](https://yannisxu.github.io/MagicControl/guide.html) for a visual demonstration.
 [查看动态演示](https://yannisxu.github.io/MagicControl/guide.html)
 
 **1. 激光滑动 / Laser Sliding**
